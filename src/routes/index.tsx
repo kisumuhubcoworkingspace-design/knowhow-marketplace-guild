@@ -33,7 +33,7 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  errorComponent: ({ error }) => <main className="market-message"><h1>We couldn’t load the exchange</h1><p>{error.message}</p></main>,
+  errorComponent: ({ error }) => <main className="market-message"><h1>We couldn’t load the exchange</h1><p>{error instanceof Error ? error.message : String(error)}</p></main>,
   notFoundComponent: () => <main className="market-message"><h1>Nothing here yet</h1></main>,
   component: MarketplaceHome,
 });
@@ -43,7 +43,8 @@ function MarketplaceHome() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All knowledge");
   const listings = useMemo(() => {
-    const source = liveListings.length ? [...liveListings, ...sampleGuides] : sampleGuides;
+    const liveSlugs = new Set(liveListings.map((guide) => guide.slug));
+    const source = [...liveListings, ...sampleGuides.filter((guide) => !liveSlugs.has(guide.slug))];
     const normalizedQuery = query.trim().toLowerCase();
     return source.filter((guide) => {
       const matchesCategory = category === "All knowledge" || guide.category === category;
