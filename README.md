@@ -1,14 +1,18 @@
-# Welcome to your Lovable project
+# Knowhow Marketplace Guild
+
+I want us to create a market place of know how, fox example am a farmer dealing in poultry, I can create ebooks,guides, playbooks etc and publish there, then when a buyer goes to the site and searches for a problem related, then they can get the docs,see descriptions and buy,so the site should have buyers and creators,creators create the docs and buyers buy and creators make money
 
 This project was built with [Lovable](https://lovable.dev).
 
+**Live app**: https://knowhow-marketplace-guild.lovable.app
+
 ## Build with Lovable
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/c5b5f6b3-be30-4195-ba4e-2616cf69cd52).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
@@ -20,10 +24,3 @@ cd <repository-name>
 npm i
 npm run dev
 ```
-
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
