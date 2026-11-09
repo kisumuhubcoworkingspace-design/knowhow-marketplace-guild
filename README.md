@@ -1,6 +1,8 @@
-# Knowhow Marketplace Guild
+# Doerly
 
 I want us to create a market place of know how, fox example am a farmer dealing in poultry, I can create ebooks,guides, playbooks etc and publish there, then when a buyer goes to the site and searches for a problem related, then they can get the docs,see descriptions and buy,so the site should have buyers and creators,creators create the docs and buyers buy and creators make money
+
+Doerly is a marketplace for practical know-how: practitioners create useful resources, and people search for help with real-world problems.
 
 This project was built with [Lovable](https://lovable.dev).
 

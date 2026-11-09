@@ -22,12 +22,12 @@ export function MarketplaceHeader() {
     <>
       <header className="market-header">
         <div className="market-header-inner">
-          <Link to="/" className="market-brand" aria-label="The Knowhow Exchange home">
+          <Link to="/" className="market-brand" aria-label="Doerly home">
             <span className="market-brand-mark"><BookOpen aria-hidden="true" /></span>
-            <span>The Knowhow Exchange</span>
+            <span>Doerly</span>
           </Link>
           <nav className={`market-nav ${menuOpen ? "is-open" : ""}`} aria-label="Main navigation">
-            <Link to="/" onClick={() => setMenuOpen(false)}>Explore</Link>
+            <Link to="/explore" search={{}} onClick={() => setMenuOpen(false)}>Explore</Link>
             <Link to="/creator" onClick={() => setMenuOpen(false)}>Creator studio</Link>
             {user ? (
               <Button variant="ghost" size="sm" onClick={() => void signOut()}>

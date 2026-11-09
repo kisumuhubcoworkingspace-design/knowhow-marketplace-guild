@@ -105,7 +105,7 @@ export function MarketplaceAuthDialog({
         <DialogHeader className="auth-header">
           <span className="auth-mark"><LockKeyhole aria-hidden="true" /></span>
           <DialogTitle className="font-heading text-2xl">
-            {mode === "signup" ? "Join the knowledge exchange" : "Welcome back"}
+            {mode === "signup" ? "Join Doerly" : "Welcome back"}
           </DialogTitle>
           <DialogDescription>
             {mode === "signup"
@@ -204,7 +204,7 @@ export function MarketplaceAuthDialog({
         </form>
 
         <p className="auth-switch">
-          {mode === "signup" ? "Already have an account?" : "New to the exchange?"}{" "}
+          {mode === "signup" ? "Already have an account?" : "New to Doerly?"}{" "}
           <Button
             type="button"
             variant="link"

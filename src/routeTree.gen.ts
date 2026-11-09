@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CreatorRouteImport } from './routes/creator'
+import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as GuideSlugRouteImport } from './routes/guide.$slug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +24,11 @@ const CreatorRoute = CreatorRouteImport.update({
   path: '/creator',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExploreRoute = ExploreRouteImport.update({
+  id: '/explore',
+  path: '/explore',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GuideSlugRoute = GuideSlugRouteImport.update({
   id: '/guide/$slug',
   path: '/guide/$slug',
@@ -32,30 +38,34 @@ const GuideSlugRoute = GuideSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/creator': typeof CreatorRoute
+  '/explore': typeof ExploreRoute
   '/guide/$slug': typeof GuideSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/creator': typeof CreatorRoute
+  '/explore': typeof ExploreRoute
   '/guide/$slug': typeof GuideSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/creator': typeof CreatorRoute
+  '/explore': typeof ExploreRoute
   '/guide/$slug': typeof GuideSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/creator' | '/guide/$slug'
+  fullPaths: '/' | '/creator' | '/explore' | '/guide/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/creator' | '/guide/$slug'
-  id: '__root__' | '/' | '/creator' | '/guide/$slug'
+  to: '/' | '/creator' | '/explore' | '/guide/$slug'
+  id: '__root__' | '/' | '/creator' | '/explore' | '/guide/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreatorRoute: typeof CreatorRoute
+  ExploreRoute: typeof ExploreRoute
   GuideSlugRoute: typeof GuideSlugRoute
 }
 
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CreatorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/explore': {
+      id: '/explore'
+      path: '/explore'
+      fullPath: '/explore'
+      preLoaderRoute: typeof ExploreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/guide/$slug': {
       id: '/guide/$slug'
       path: '/guide/$slug'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreatorRoute: CreatorRoute,
+  ExploreRoute: ExploreRoute,
   GuideSlugRoute: GuideSlugRoute,
 }
 export const routeTree = rootRouteImport

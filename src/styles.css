@@ -95,9 +95,17 @@
 .catalog-heading { display: flex; justify-content: space-between; align-items: end; gap: 24px; }
 .catalog-heading h2, .creator-band h2, .detail-afterword h2 { margin: 8px 0; color: var(--market-ocean); font-size: 30px; line-height: 1.25; }
 .catalog-heading > p { max-width: 330px; color: var(--muted-foreground); font-size: 13px; line-height: 1.7; }
+.explore-catalog { min-height: calc(100vh - 74px); }
+.catalog-search { max-width: 560px; margin-top: 22px; padding: 7px 10px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 7px; background: var(--card); }
+.catalog-search > svg { width: 18px; color: var(--market-teal); flex: 0 0 auto; }
+.catalog-search input { min-width: 0; border: 0; box-shadow: none; }
+.catalog-search input:focus-visible { outline: none; }
 .catalog-toolbar { margin: 26px 0 20px; display: flex; justify-content: space-between; align-items: center; gap: 14px; }
 .category-list { display: flex; flex-wrap: wrap; gap: 8px; }
 .category-list button { border-radius: 6px; }
+.catalog-refinements { margin: -6px 0 20px; display: flex; flex-wrap: wrap; gap: 10px; }
+.catalog-refinements label { display: flex; align-items: center; gap: 8px; color: var(--muted-foreground); font-size: 11px; font-weight: 700; }
+.catalog-refinements select { min-width: 128px; padding: 8px 10px; color: var(--market-ocean); border: 1px solid var(--border); border-radius: 5px; background: var(--card); font-size: 12px; }
 .result-count { display: flex; align-items: center; gap: 6px; color: var(--muted-foreground); font-size: 12px; white-space: nowrap; }
 .result-count svg { width: 15px; }
 .guide-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
@@ -122,6 +130,7 @@
 .empty-catalog, .market-message { min-height: 230px; display: grid; align-content: center; justify-items: center; gap: 12px; text-align: center; color: var(--muted-foreground); }
 .empty-catalog h3, .market-message h1 { margin: 0; color: var(--market-ocean); font-family: "Sora", sans-serif; font-size: 24px; }
 .empty-catalog p, .market-message p { margin: 0; font-size: 14px; }
+.catalog-more { margin-top: 24px; }
 .creator-band { max-width: 1176px; margin: 58px auto; padding: 32px; display: flex; align-items: center; gap: 24px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .creator-band-mark { width: 54px; height: 54px; display: grid; place-items: center; background: var(--secondary); border-radius: 8px; flex: 0 0 auto; }
 .book-stack-icon { width: 26px; height: 25px; display: flex; flex-direction: column; justify-content: space-between; }
@@ -155,6 +164,7 @@
 .purchase-unavailable { width: 100%; white-space: normal; }
 .purchase-note { align-items: flex-start; margin: 16px 0 0; color: var(--muted-foreground); font-size: 11px; line-height: 1.6; }
 .purchase-note svg { width: 15px; flex: 0 0 auto; color: var(--market-teal); }
+.license-note { margin: 12px 0 0; color: var(--muted-foreground); font-size: 10px; line-height: 1.6; }
 .sample-note { margin: 14px 0 0; color: var(--market-coral); font-size: 11px; font-weight: 800; }
 .detail-afterword { margin: 22px 0 0; padding: 26px 0 40px; border-top: 1px solid var(--border); }
 .detail-afterword h2 { font-size: 21px; }
@@ -188,6 +198,7 @@
 .publication-choice { display: flex; flex-wrap: wrap; gap: 8px; }
 .publication-warning { display: flex; align-items: flex-start; gap: 7px; color: var(--market-coral); }
 .publication-warning svg { width: 15px; flex: 0 0 auto; }
+.creator-form-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .profile-form { padding-bottom: 24px; }
 .creator-studio-aside { min-width: 0; }
 .creator-studio-aside .studio-section { padding-top: 20px; }
@@ -239,10 +250,12 @@
   .market-search button { padding: 0 10px; font-size: 11px; }
   .market-hero-image-wrap { min-height: 280px; height: 76vw; max-height: 390px; }
   .market-catalog { padding: 42px 18px 52px; }
+  .explore-catalog { min-height: calc(100vh - 64px); }
   .catalog-heading { align-items: flex-start; flex-direction: column; gap: 4px; }
   .catalog-heading h2 { font-size: 25px; }
   .catalog-heading > p { margin: 0; }
   .catalog-toolbar { align-items: flex-start; flex-direction: column; }
+  .catalog-refinements { margin-top: -2px; }
   .category-list { gap: 6px; }
   .guide-grid { grid-template-columns: 1fr; gap: 14px; }
   .guide-card-art { min-height: 135px; }

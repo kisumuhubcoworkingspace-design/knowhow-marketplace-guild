@@ -18,6 +18,7 @@ describe("App routing", () => {
   it("matches the creator studio and guide detail routes", () => {
     const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
 
+    expect(router.matchRoutes("/explore").at(-1)?.routeId).toBe("/explore");
     expect(router.matchRoutes("/creator").at(-1)?.routeId).toBe("/creator");
     expect(router.matchRoutes("/guide/healthy-chicks-first-eight-weeks").at(-1)?.routeId).toBe("/guide/$slug");
   });

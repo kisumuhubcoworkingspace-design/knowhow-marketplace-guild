@@ -134,6 +134,8 @@ export const marketplaceCategories = [
   "Technology",
 ];
 
+export const marketplaceFormats = ["Ebook", "Guide", "Playbook", "Checklist", "Template"];
+
 export function formatGuidePrice(amount: number, currencyCode: string) {
   try {
     return new Intl.NumberFormat(undefined, {
