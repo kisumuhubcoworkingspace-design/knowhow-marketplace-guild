@@ -180,6 +180,7 @@
 .creator-studio-heading h1 { margin: 11px 0; font-size: 38px; }
 .creator-studio-heading > p:last-child { color: var(--muted-foreground); font-size: 14px; }
 .creator-studio-layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr); align-items: start; gap: 46px; }
+.creator-studio-layout.is-onboarding { max-width: 740px; grid-template-columns: 1fr; }
 .creator-studio-main { min-width: 0; }
 .studio-section { padding: 26px 0 30px; border-top: 1px solid var(--border); }
 .studio-section-heading { margin-bottom: 22px; }
@@ -191,6 +192,14 @@
 .studio-form { display: grid; gap: 17px; }
 .studio-field { display: grid; gap: 7px; color: var(--market-ocean); font-size: 12px; font-weight: 700; }
 .studio-field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.expertise-options { display: flex; flex-wrap: wrap; gap: 7px; }
+.creator-consent { display: flex; align-items: flex-start; gap: 10px; color: var(--muted-foreground); font-size: 11px; line-height: 1.6; }
+.creator-consent input { width: 16px; height: 16px; margin: 1px 0 0; accent-color: var(--market-teal); flex: 0 0 auto; }
+.reset-password-page { min-height: calc(100vh - 74px); padding: 48px 20px; display: grid; place-items: center; }
+.reset-password-card { width: min(100%, 480px); padding: 28px; display: grid; gap: 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); }
+.reset-password-card h1 { margin: 0; color: var(--market-ocean); font-family: "Sora", sans-serif; font-size: 26px; }
+.reset-password-card > p:not(.eyebrow) { margin: 0; color: var(--muted-foreground); font-size: 13px; line-height: 1.7; }
+.reset-password-card .auth-mark { margin-bottom: 0; }
 .field-hint { color: var(--muted-foreground); font-size: 10px; font-weight: 500; line-height: 1.6; }
 .file-drop { position: relative; min-height: 58px; padding: 10px 14px; display: flex; align-items: center; gap: 12px; border: 1px dashed var(--market-teal); border-radius: 6px; color: var(--market-ocean); background: var(--market-paper); font-size: 12px; font-weight: 600; }
 .file-drop > svg { width: 20px; color: var(--market-teal); }
@@ -278,6 +287,7 @@
   .creator-studio { padding-top: 34px; }
   .creator-studio-heading h1 { font-size: 31px; }
   .creator-studio-layout { grid-template-columns: 1fr; gap: 20px; }
+  .creator-studio-layout.is-onboarding { grid-template-columns: 1fr; }
   .creator-studio-aside { order: -1; }
   .studio-field-grid { grid-template-columns: 1fr; }
   .market-message { padding: 28px 18px; }

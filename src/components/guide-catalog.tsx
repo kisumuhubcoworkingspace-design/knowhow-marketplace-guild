@@ -33,8 +33,9 @@ export function GuideCatalog({
     return listings.filter((guide) => {
       const matchesCategory = category === "All knowledge" || guide.category === category;
       const matchesFormat = format === "All formats" || guide.format === format;
-      const matchesPrice = price === "Any price"
-        || (price === "Free" ? guide.price_cents === 0 : guide.price_cents > 0);
+      const matchesPrice =
+        price === "Any price" ||
+        (price === "Free" ? guide.price_cents === 0 : guide.price_cents > 0);
       const searchableText = [
         guide.title,
         guide.summary,
@@ -42,9 +43,15 @@ export function GuideCatalog({
         guide.category,
         guide.format,
         guide.creator_name,
-      ].join(" ").toLocaleLowerCase();
-      return matchesCategory && matchesFormat && matchesPrice
-        && (!normalizedQuery || searchableText.includes(normalizedQuery));
+      ]
+        .join(" ")
+        .toLocaleLowerCase();
+      return (
+        matchesCategory &&
+        matchesFormat &&
+        matchesPrice &&
+        (!normalizedQuery || searchableText.includes(normalizedQuery))
+      );
     });
   }, [category, format, listings, price, query]);
 
@@ -58,12 +65,19 @@ export function GuideCatalog({
   return (
     <>
       <div className="catalog-heading">
-        <div><p className="eyebrow">Explore Doerly</p><h2>Find your next useful thing.</h2></div>
+        <div>
+          <p className="eyebrow">Explore Doerly</p>
+          <h2>Find your next useful thing.</h2>
+        </div>
         <p>Search for a real task or problem, then see what each practitioner resource covers.</p>
       </div>
 
       {showSearch && (
-        <form className="catalog-search" role="search" onSubmit={(event: FormEvent<HTMLFormElement>) => event.preventDefault()}>
+        <form
+          className="catalog-search"
+          role="search"
+          onSubmit={(event: FormEvent<HTMLFormElement>) => event.preventDefault()}
+        >
           <Search aria-hidden="true" />
           <Input
             aria-label="Search practical resources"
@@ -88,18 +102,24 @@ export function GuideCatalog({
             </Button>
           ))}
         </div>
-        <span className="result-count"><SlidersHorizontal aria-hidden="true" /> {filteredListings.length} resources</span>
+        <span className="result-count">
+          <SlidersHorizontal aria-hidden="true" /> {filteredListings.length} resources
+        </span>
       </div>
 
       {showAdvancedFilters && (
         <div className="catalog-refinements" aria-label="Refine results">
-          <label>Format
+          <label>
+            Format
             <select value={format} onChange={(event) => setFormat(event.target.value)}>
               <option>All formats</option>
-              {marketplaceFormats.map((item) => <option key={item}>{item}</option>)}
+              {marketplaceFormats.map((item) => (
+                <option key={item}>{item}</option>
+              ))}
             </select>
           </label>
-          <label>Price
+          <label>
+            Price
             <select value={price} onChange={(event) => setPrice(event.target.value)}>
               <option>Any price</option>
               <option>Free</option>
@@ -111,13 +131,17 @@ export function GuideCatalog({
 
       {filteredListings.length > 0 ? (
         <div className="guide-grid">
-          {filteredListings.map((guide, index) => <GuideCard key={guide.id} guide={guide} index={index} />)}
+          {filteredListings.map((guide, index) => (
+            <GuideCard key={guide.id} guide={guide} index={index} />
+          ))}
         </div>
       ) : (
         <div className="empty-catalog">
           <h3>No resources match those filters.</h3>
           <p>Try a different search or clear your filters to see all available resources.</p>
-          <Button variant="outline" onClick={clearFilters}>Clear filters</Button>
+          <Button variant="outline" onClick={clearFilters}>
+            Clear filters
+          </Button>
         </div>
       )}
     </>
@@ -125,7 +149,12 @@ export function GuideCatalog({
 }
 
 function GuideCard({ guide, index }: { guide: GuideListing; index: number }) {
-  const accents = ["guide-accent-sea", "guide-accent-leaf", "guide-accent-coral", "guide-accent-sky"];
+  const accents = [
+    "guide-accent-sea",
+    "guide-accent-leaf",
+    "guide-accent-coral",
+    "guide-accent-sky",
+  ];
   return (
     <article className="guide-card">
       <div className={`guide-card-art ${accents[index % accents.length]}`} aria-hidden="true">
@@ -134,12 +163,23 @@ function GuideCard({ guide, index }: { guide: GuideListing; index: number }) {
         {guide.sample && <span className="sample-tag">Example only</span>}
       </div>
       <div className="guide-card-body">
-        <div className="guide-meta"><span>{guide.category}</span><span>{guide.format}</span></div>
-        <h3><Link to="/guide/$slug" params={{ slug: guide.slug }}>{guide.title}</Link></h3>
+        <div className="guide-meta">
+          <span>{guide.category}</span>
+          <span>{guide.format}</span>
+        </div>
+        <h3>
+          <Link to="/guide/$slug" params={{ slug: guide.slug }}>
+            {guide.title}
+          </Link>
+        </h3>
         <p className="guide-summary">{guide.summary}</p>
         <div className="guide-card-bottom">
           <span className="creator-byline">By {guide.creator_name}</span>
-          <span className="guide-price">{guide.price_cents === 0 ? "Free" : formatGuidePrice(guide.price_cents, guide.currency_code)}</span>
+          <span className="guide-price">
+            {guide.price_cents === 0
+              ? "Free"
+              : formatGuidePrice(guide.price_cents, guide.currency_code)}
+          </span>
         </div>
       </div>
     </article>

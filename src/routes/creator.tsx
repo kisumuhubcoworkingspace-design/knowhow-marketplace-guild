@@ -7,7 +7,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MarketplaceAuthDialog } from "@/components/marketplace-auth-dialog";
 import { useMarketplaceAuth } from "@/hooks/use-marketplace-auth";
-import { formatGuidePrice, marketplaceCategories, marketplaceFormats, slugifyGuideTitle } from "@/lib/marketplace-data";
+import {
+  formatGuidePrice,
+  marketplaceCategories,
+  marketplaceFormats,
+  parseCreatorProfile,
+  serializeCreatorProfile,
+  slugifyGuideTitle,
+} from "@/lib/marketplace-data";
 import { supabase } from "@/integrations/supabase/client";
 
 type CreatorGuide = {
@@ -45,6 +52,12 @@ function CreatorStudioPage() {
   const [guides, setGuides] = useState<CreatorGuide[]>([]);
   const [profileName, setProfileName] = useState("");
   const [profileBio, setProfileBio] = useState("");
+  const [profileExpertise, setProfileExpertise] = useState<string[]>([]);
+  const [profileExperience, setProfileExperience] = useState("");
+  const [rightsAcknowledged, setRightsAcknowledged] = useState(false);
+  const [onboardingComplete, setOnboardingComplete] = useState(false);
+  const [verificationBusy, setVerificationBusy] = useState(false);
+  const [verificationFeedback, setVerificationFeedback] = useState("");
   const [category, setCategory] = useState("Farming & food");
   const [format, setFormat] = useState("Guide");
   const [editingGuide, setEditingGuide] = useState<CreatorGuide | null>(null);
@@ -55,7 +68,10 @@ function CreatorStudioPage() {
   const [feedback, setFeedback] = useState("");
 
   useEffect(() => {
-    if (!ready || !user) return;
+    if (!ready || !user || !user.email_confirmed_at) return;
+    setLoaded(false);
+    setOnboardingComplete(false);
+    setGuides([]);
     const currentUser = user;
     let active = true;
     async function loadStudio() {
@@ -67,8 +83,20 @@ function CreatorStudioPage() {
       if (profileResult.error || guideResult.error) {
         setFeedback(profileResult.error?.message ?? guideResult.error?.message ?? "Your creator space could not be loaded.");
       } else {
-        setProfileName(profileResult.data?.display_name ?? currentUser.user_metadata["full_name"] ?? "");
-        setProfileBio(profileResult.data?.bio ?? "");
+        const profile = parseCreatorProfile(profileResult.data?.bio ?? "");
+        const displayName = profileResult.data?.display_name ?? currentUser.user_metadata["full_name"] ?? "";
+        setProfileName(displayName === "New member" ? "" : displayName);
+        setProfileBio(profile.about);
+        setProfileExpertise(profile.expertise);
+        setProfileExperience(profile.experience);
+        setOnboardingComplete(Boolean(
+          displayName.trim()
+          && displayName !== "New member"
+          && profile.expertise.length
+          && profile.experience
+          && profile.about
+          && currentUser.user_metadata["doerly_creator_rights_acknowledged_at"],
+        ));
         setGuides(guideResult.data ?? []);
       }
       setLoaded(true);
@@ -80,15 +108,68 @@ function CreatorStudioPage() {
   async function saveProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!user) return;
+    if (!profileExpertise.length) {
+      setFeedback("Choose at least one area of expertise.");
+      return;
+    }
+    if (!onboardingComplete && !rightsAcknowledged) {
+      setFeedback("Confirm that you have the right to share your materials.");
+      return;
+    }
     setLoading(true);
     setFeedback("");
+    const bio = serializeCreatorProfile({
+      expertise: profileExpertise,
+      experience: profileExperience,
+      about: profileBio,
+    });
     const { error } = await supabase.from("profiles").upsert({
       id: user.id,
       display_name: profileName.trim(),
-      bio: profileBio.trim(),
+      bio,
     }).select("id").single();
-    setFeedback(error ? error.message : "Your creator profile is saved.");
+    if (error) {
+      setFeedback(error.message);
+      setLoading(false);
+      return;
+    }
+    if (!onboardingComplete) {
+      const { error: acknowledgmentError } = await supabase.auth.updateUser({
+        data: { doerly_creator_rights_acknowledged_at: new Date().toISOString() },
+      });
+      if (acknowledgmentError) {
+        setFeedback(`Your profile was saved, but the acknowledgment could not be saved: ${acknowledgmentError.message}`);
+        setLoading(false);
+        return;
+      }
+      setRightsAcknowledged(false);
+      setOnboardingComplete(true);
+      setFeedback("Your creator profile is complete. Your resources and files will remain private drafts.");
+    } else {
+      setFeedback("Your creator profile is saved.");
+    }
     setLoading(false);
+  }
+
+  async function resendVerification() {
+    if (!user?.email) return;
+    setVerificationBusy(true);
+    setVerificationFeedback("");
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: user.email,
+      options: { emailRedirectTo: window.location.href },
+    });
+    setVerificationFeedback(error
+      ? error.message
+      : "A verification link has been sent. Check your inbox and spam folder.");
+    setVerificationBusy(false);
+  }
+
+  function toggleExpertise(item: string) {
+    setProfileExpertise((current) => current.includes(item)
+      ? current.filter((value) => value !== item)
+      : [...current, item]);
   }
 
   async function createGuide(event: FormEvent<HTMLFormElement>) {
@@ -202,22 +283,66 @@ function CreatorStudioPage() {
       </main>
     );
   }
+  if (!user.email_confirmed_at) {
+    return (
+      <main className="creator-gate">
+        <div className="creator-gate-copy">
+          <p className="eyebrow">Verify your email</p>
+          <h1>Confirm your email to continue.</h1>
+          <p>Creator onboarding and private drafts are available after you verify the email address on your account.</p>
+          <Button onClick={() => void resendVerification()} disabled={verificationBusy}>
+            {verificationBusy ? <LoaderCircle className="animate-spin" /> : <Check />}
+            Resend verification link
+          </Button>
+          {verificationFeedback && <p className="auth-feedback" role="status">{verificationFeedback}</p>}
+        </div>
+        <div className="creator-gate-note"><LockKeyhole aria-hidden="true" /><p>Your creator area remains private until email verification is complete.</p></div>
+      </main>
+    );
+  }
+  if (!loaded) {
+    return <main className="market-message"><LoaderCircle className="animate-spin" aria-label="Loading creator profile" /></main>;
+  }
 
   return (
     <main className="creator-studio">
-      <section className="creator-studio-heading"><p className="eyebrow">Creator studio</p><h1>Your know-how, ready to share.</h1><p>Describe what you’ve learned, save a private draft, and prepare a useful resource for Doerly.</p></section>
-      <div className="creator-studio-layout">
+      <section className="creator-studio-heading">
+        <p className="eyebrow">{onboardingComplete ? "Creator studio" : "Creator onboarding"}</p>
+        <h1>{onboardingComplete ? "Your know-how, ready to share." : "Set up your creator profile."}</h1>
+        <p>{onboardingComplete
+          ? "Describe what you’ve learned, save a private draft, and prepare a useful resource for Doerly."
+          : "Tell buyers what you know and what practical work you’ve done. This information is saved to your public creator profile."}</p>
+      </section>
+      <div className={`creator-studio-layout ${onboardingComplete ? "" : "is-onboarding"}`}>
         <div className="creator-studio-main">
           <section className="studio-section">
-            <div className="studio-section-heading"><div><span className="studio-step">01</span><div><h2>Your creator profile</h2><p>Help readers understand who’s behind the guide.</p></div></div></div>
+            <div className="studio-section-heading"><div><span className="studio-step">01</span><div><h2>{onboardingComplete ? "Your creator profile" : "Your public profile"}</h2><p>Self-described experience helps buyers judge whether your know-how fits their situation.</p></div></div></div>
             <form className="studio-form profile-form" onSubmit={(event) => void saveProfile(event)}>
               <label className="studio-field">Display name<Input value={profileName} onChange={(event) => setProfileName(event.target.value)} maxLength={80} required /></label>
-              <label className="studio-field">Your experience<Textarea value={profileBio} onChange={(event) => setProfileBio(event.target.value)} maxLength={700} rows={4} placeholder="Describe your field, practical experience, and the work you’ve done. Credentials are not independently verified." /><span className="field-hint">Explain relevant first-hand experience. Doerly does not label self-described experience as verified credentials.</span></label>
-              <Button type="submit" variant="outline" disabled={loading}>{loading ? <LoaderCircle className="animate-spin" /> : <Check />} Save profile</Button>
+              <div className="studio-field" role="group" aria-label="Areas of expertise">
+                <span>Areas of expertise</span>
+                <div className="expertise-options">
+                  {marketplaceCategories.filter((item) => item !== "All knowledge").map((item) => (
+                    <Button key={item} type="button" size="sm" variant={profileExpertise.includes(item) ? "default" : "outline"} aria-pressed={profileExpertise.includes(item)} onClick={() => toggleExpertise(item)}>
+                      {item}
+                    </Button>
+                  ))}
+                </div>
+                <span className="field-hint">Select every field relevant to your practical experience.</span>
+              </div>
+              <label className="studio-field">Practical experience<Textarea value={profileExperience} onChange={(event) => setProfileExperience(event.target.value)} maxLength={500} rows={3} placeholder="What have you done in these fields? Include useful context such as years or types of work." required /></label>
+              <label className="studio-field">About you<Textarea value={profileBio} onChange={(event) => setProfileBio(event.target.value)} maxLength={500} rows={3} placeholder="A short introduction for people considering your resources." required /><span className="field-hint">Your background is self-described, not independently verified by Doerly.</span></label>
+              {!onboardingComplete && (
+                <label className="creator-consent">
+                  <input type="checkbox" checked={rightsAcknowledged} onChange={(event) => setRightsAcknowledged(event.target.checked)} required />
+                  <span>I have the right to share materials I submit, and I will describe my resources and experience accurately.</span>
+                </label>
+              )}
+              <Button type="submit" variant="outline" disabled={loading}>{loading ? <LoaderCircle className="animate-spin" /> : <Check />}{onboardingComplete ? "Save profile" : "Complete creator profile"}</Button>
             </form>
           </section>
 
-          <section className="studio-section">
+          {onboardingComplete && <section className="studio-section">
             <div className="studio-section-heading"><div><span className="studio-step">02</span><div><h2>{editingGuide ? "Edit private draft" : "Create a resource"}</h2><p>Help buyers understand the problem, audience, contents, format, and limitations.</p></div></div></div>
             <form key={editingGuide?.id ?? "new-resource"} className="studio-form" onSubmit={(event) => void createGuide(event)}>
               <label className="studio-field">Resource title<Input name="title" required maxLength={120} defaultValue={editingGuide?.title ?? ""} placeholder="e.g. Healthy chicks: your first eight weeks" /></label>
@@ -235,16 +360,16 @@ function CreatorStudioPage() {
                 {editingGuide && <Button type="button" variant="outline" onClick={cancelEditing} disabled={loading}><X aria-hidden="true" /> Cancel edit</Button>}
               </div>
             </form>
-          </section>
+          </section>}
           {feedback && <p className="studio-feedback" role="status">{feedback}</p>}
         </div>
 
-        <aside className="creator-studio-aside">
+        {onboardingComplete && <aside className="creator-studio-aside">
           <section className="studio-section your-guides"><div className="studio-section-heading compact"><div><span className="studio-step"><BookOpen aria-hidden="true" /></span><div><h2>Your resources</h2><p>{loaded ? `${guides.length} total` : "Loading your work…"}</p></div></div></div>
             {guides.length ? <ul className="creator-guide-list">{guides.map((guide) => <li key={guide.id}><div className="creator-guide-row"><div><span className={`status-dot status-${guide.status}`} />{guide.status === "published" ? "Published" : "Private draft"}</div><span>{guide.category}</span></div><h3>{guide.title}</h3><p>{guide.format} · {guide.price_cents === 0 ? "Free" : formatGuidePrice(guide.price_cents, guide.currency_code)}</p><div className="creator-guide-actions">{guide.status === "draft" && <Button variant="outline" size="sm" onClick={() => editDraft(guide)}>Edit draft</Button>}{guide.status === "published" && <Button asChild variant="outline" size="sm"><Link to="/guide/$slug" params={{ slug: guide.slug }}>View listing <ArrowUpRight /></Link></Button>}{guide.status === "published" && <Button variant="ghost" size="sm" onClick={() => void unpublishGuide(guide)}>Unpublish</Button>}</div></li>)}</ul> : <div className="studio-empty"><FileText aria-hidden="true" /><p>{loaded ? "Your first resource will appear here." : "Loading your resources…"}</p></div>}
           </section>
           <div className="creator-payout-note"><LockKeyhole aria-hidden="true" /><div><strong>Payments are not connected yet</strong><p>Listings can be prepared, but checkout and creator payouts are not active.</p></div></div>
-        </aside>
+        </aside>}
       </div>
       <footer className="market-footer"><span>© 2026 Doerly</span><span>Learn it from someone who’s done it.</span></footer>
     </main>

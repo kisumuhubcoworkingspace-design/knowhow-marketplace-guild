@@ -9,7 +9,9 @@ export const Route = createFileRoute("/explore")({
   loader: async () => {
     const { data: guides, error } = await supabase
       .from("guides")
-      .select("id, slug, title, summary, description, category, format, reading_time_minutes, price_cents, currency_code, creator_id, created_at")
+      .select(
+        "id, slug, title, summary, description, category, format, reading_time_minutes, price_cents, currency_code, creator_id, created_at",
+      )
       .eq("status", "published")
       .order("created_at", { ascending: false });
     if (error) throw error;
@@ -31,9 +33,17 @@ export const Route = createFileRoute("/explore")({
   head: () => ({
     meta: [
       { title: "Explore practical resources | Doerly" },
-      { name: "description", content: "Search and browse practical guides, playbooks and tools from people with first-hand experience." },
+      {
+        name: "description",
+        content:
+          "Search and browse practical guides, playbooks and tools from people with first-hand experience.",
+      },
       { property: "og:title", content: "Explore practical resources | Doerly" },
-      { property: "og:description", content: "Search and browse practical guides, playbooks and tools from people with first-hand experience." },
+      {
+        property: "og:description",
+        content:
+          "Search and browse practical guides, playbooks and tools from people with first-hand experience.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -50,7 +60,10 @@ function ExplorePage() {
       <section className="market-catalog explore-catalog" aria-label="Explore resources">
         <GuideCatalog listings={listings} initialQuery={q ?? ""} />
       </section>
-      <footer className="market-footer"><span>© 2026 Doerly</span><span>Learn it from someone who’s done it.</span></footer>
+      <footer className="market-footer">
+        <span>© 2026 Doerly</span>
+        <span>Learn it from someone who’s done it.</span>
+      </footer>
     </main>
   );
 }

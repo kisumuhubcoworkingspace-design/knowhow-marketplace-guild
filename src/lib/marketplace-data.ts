@@ -136,6 +136,31 @@ export const marketplaceCategories = [
 
 export const marketplaceFormats = ["Ebook", "Guide", "Playbook", "Checklist", "Template"];
 
+export type CreatorProfileDetails = {
+  expertise: string[];
+  experience: string;
+  about: string;
+};
+
+export function serializeCreatorProfile(details: CreatorProfileDetails) {
+  return [
+    `Expertise: ${details.expertise.join(", ")}`,
+    `Practical experience: ${details.experience.trim()}`,
+    `About: ${details.about.trim()}`,
+  ].join("\n");
+}
+
+export function parseCreatorProfile(bio: string): CreatorProfileDetails {
+  const expertise = bio.match(/^Expertise:\s*(.*)$/m)?.[1]
+    ?.split(",")
+    .map((item) => item.trim())
+    .filter(Boolean) ?? [];
+  const experience = bio.match(/^Practical experience:\s*(.*)$/m)?.[1]?.trim() ?? "";
+  const about = bio.match(/^About:\s*([\s\S]*)$/m)?.[1]?.trim()
+    ?? (bio.startsWith("Expertise:") ? "" : bio.trim());
+  return { expertise, experience, about };
+}
+
 export function formatGuidePrice(amount: number, currencyCode: string) {
   try {
     return new Intl.NumberFormat(undefined, {

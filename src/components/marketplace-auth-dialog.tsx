@@ -36,16 +36,18 @@ export function MarketplaceAuthDialog({
   initialMode = "signin",
   onAuthenticated,
 }: MarketplaceAuthDialogProps) {
-  const [mode, setMode] = useState<"signin" | "signup">(initialMode);
+  const [mode, setMode] = useState<"signin" | "signup" | "forgot">(initialMode);
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [verificationPending, setVerificationPending] = useState(false);
   const [feedback, setFeedback] = useState("");
 
-  function switchMode(nextMode: "signin" | "signup") {
+  function switchMode(nextMode: "signin" | "signup" | "forgot") {
     setMode(nextMode);
+    setVerificationPending(false);
     setFeedback("");
   }
 
@@ -60,14 +62,22 @@ export function MarketplaceAuthDialog({
           password,
           options: {
             data: { full_name: displayName.trim() },
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: window.location.href,
           },
         });
         if (error) throw error;
         if (!data.session) {
+          setVerificationPending(true);
           setFeedback("Check your email to confirm your account, then come back to sign in.");
           return;
         }
+      } else if (mode === "forgot") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        setFeedback("If an account uses this email, a password reset link will arrive shortly.");
+        return;
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
         if (error) throw error;
@@ -81,12 +91,27 @@ export function MarketplaceAuthDialog({
     }
   }
 
+  async function resendSignupVerification() {
+    if (!email.trim()) return;
+    setBusy(true);
+    setFeedback("");
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: email.trim(),
+      options: { emailRedirectTo: window.location.href },
+    });
+    setFeedback(error
+      ? error.message
+      : "A verification link has been sent. Check your inbox and spam folder.");
+    setBusy(false);
+  }
+
   async function handleSocialSignIn(provider: "google" | "lovable") {
     setBusy(true);
     setFeedback("");
     try {
       const result = await lovable.auth.signInWithOAuth(provider, {
-        redirect_uri: window.location.origin,
+        redirect_uri: window.location.href,
       });
       if (result.error) throw result.error;
       if (!result.redirected) {
@@ -105,16 +130,18 @@ export function MarketplaceAuthDialog({
         <DialogHeader className="auth-header">
           <span className="auth-mark"><LockKeyhole aria-hidden="true" /></span>
           <DialogTitle className="font-heading text-2xl">
-            {mode === "signup" ? "Join Doerly" : "Welcome back"}
+            {mode === "signup" ? "Join Doerly" : mode === "forgot" ? "Reset your password" : "Welcome back"}
           </DialogTitle>
           <DialogDescription>
             {mode === "signup"
               ? "Save useful guides, learn from people who've done it, or share what you know."
-              : "Sign in to your account to keep learning or manage your guides."}
+              : mode === "forgot"
+                ? "Enter the email address on your account and we’ll send a reset link if it exists."
+                : "Sign in to your account to keep learning or manage your resources."}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="auth-provider-list">
+        {mode !== "forgot" && <div className="auth-provider-list">
           <Button
             variant="outline"
             className="auth-provider-google"
@@ -135,9 +162,9 @@ export function MarketplaceAuthDialog({
             <span aria-hidden="true" className="lovable-mark">L</span>
             Continue with Lovable
           </Button>
-        </div>
+        </div>}
 
-        <div className="auth-divider"><span>or use email</span></div>
+        {mode !== "forgot" && <div className="auth-divider"><span>or use email</span></div>}
 
         <form className="auth-form" onSubmit={(event) => void handlePasswordSubmit(event)}>
           {mode === "signup" && (
@@ -170,7 +197,7 @@ export function MarketplaceAuthDialog({
               />
             </span>
           </label>
-          <label className="field-label">
+          {mode !== "forgot" && <label className="field-label">
             Password
             <span className="field-control field-control-password">
               <LockKeyhole aria-hidden="true" />
@@ -195,23 +222,34 @@ export function MarketplaceAuthDialog({
                 {showPassword ? <EyeOff /> : <Eye />}
               </Button>
             </span>
-          </label>
+          </label>}
           {feedback && <p className="auth-feedback" role="status">{feedback}</p>}
           <Button type="submit" className="w-full" disabled={busy}>
             {busy ? <LoaderCircle className="animate-spin" /> : <ArrowRight />}
-            {mode === "signup" ? "Create your account" : "Sign in"}
+            {mode === "signup" ? "Create your account" : mode === "forgot" ? "Send reset link" : "Sign in"}
           </Button>
         </form>
 
+        {verificationPending && (
+          <Button type="button" variant="outline" className="w-full" disabled={busy} onClick={() => void resendSignupVerification()}>
+            {busy ? <LoaderCircle className="animate-spin" /> : <Mail />}
+            Resend verification email
+          </Button>
+        )}
+        {mode === "signin" && (
+          <Button type="button" variant="link" className="auth-forgot-link" onClick={() => switchMode("forgot")}>
+            Forgot password?
+          </Button>
+        )}
         <p className="auth-switch">
-          {mode === "signup" ? "Already have an account?" : "New to Doerly?"}{" "}
+          {mode === "signup" ? "Already have an account?" : mode === "forgot" ? "Remembered it?" : "New to Doerly?"}{" "}
           <Button
             type="button"
             variant="link"
             className="h-auto p-0 font-semibold"
-            onClick={() => switchMode(mode === "signup" ? "signin" : "signup")}
+            onClick={() => switchMode(mode === "signup" ? "signin" : mode === "forgot" ? "signin" : "signup")}
           >
-            {mode === "signup" ? "Sign in" : "Create an account"}
+            {mode === "signup" ? "Sign in" : mode === "forgot" ? "Sign in" : "Create an account"}
           </Button>
         </p>
       </DialogContent>

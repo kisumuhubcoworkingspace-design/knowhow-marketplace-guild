@@ -1,0 +1,1 @@
+- [Creator profile storage](creator-profile-storage.md) — Onboarding details temporarily share public profile text; the rights acknowledgment is not an immutable consent log.
