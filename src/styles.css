@@ -138,6 +138,23 @@
 .creator-band p:last-child { margin: 0; color: var(--muted-foreground); font-size: 12px; }
 .creator-band > .button, .creator-band > a { margin-left: auto; flex: 0 0 auto; }
 .market-footer { max-width: 1176px; margin: 0 auto; padding: 20px 0 28px; display: flex; justify-content: space-between; gap: 16px; color: var(--muted-foreground); font-size: 10px; }
+.policy-page { max-width: 940px; margin: 0 auto; padding: 52px 32px 36px; }
+.policy-page-heading { max-width: 740px; margin-bottom: 26px; }
+.policy-page-heading h1 { margin: 10px 0; color: var(--market-ocean); font-family: "Sora", sans-serif; font-size: clamp(32px, 4vw, 46px); line-height: 1.15; }
+.policy-page-heading > p:last-child { color: var(--muted-foreground); font-size: 14px; line-height: 1.7; }
+.policy-draft-warning { margin: 22px 0; padding: 18px; border: 1px solid color-mix(in oklab, var(--market-coral), white 55%); border-radius: 8px; background: color-mix(in oklab, var(--market-coral), white 92%); color: var(--market-ocean); }
+.policy-draft-warning p { margin: 5px 0 0; color: var(--muted-foreground); font-size: 12px; line-height: 1.7; }
+.policy-navigation { margin: 24px 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.policy-navigation a, .policy-page-footer a { color: var(--market-teal); font-size: 12px; font-weight: 800; text-underline-offset: 3px; }
+.policy-documents { display: grid; gap: 18px; }
+.policy-document { padding: 24px; scroll-margin-top: 20px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); }
+.policy-document .eyebrow { margin: 0 0 8px; }
+.policy-document h2 { margin: 0 0 12px; color: var(--market-ocean); font-family: "Sora", sans-serif; font-size: 24px; }
+.policy-document h3 { margin: 22px 0 8px; color: var(--market-ocean); font-family: "Sora", sans-serif; font-size: 15px; }
+.policy-document p, .policy-document li { color: var(--muted-foreground); font-size: 12px; line-height: 1.8; }
+.policy-document ul { padding-left: 20px; }
+.policy-introduction { font-size: 13px !important; }
+.policy-page-footer { margin-top: 26px; display: flex; justify-content: space-between; gap: 16px; }
 .guide-detail-page, .creator-studio { max-width: 1176px; margin: 0 auto; padding: 30px 32px 0; }
 .detail-breadcrumb { margin: 0 0 14px -12px; }
 .guide-detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 310px; align-items: start; gap: 52px; }
@@ -204,6 +221,12 @@
 .expertise-options { display: flex; flex-wrap: wrap; gap: 7px; }
 .creator-consent { display: flex; align-items: flex-start; gap: 10px; color: var(--muted-foreground); font-size: 11px; line-height: 1.6; }
 .creator-consent input { width: 16px; height: 16px; margin: 1px 0 0; accent-color: var(--market-teal); flex: 0 0 auto; }
+.creator-consent a, .policy-consents a { color: var(--market-teal); font-weight: 700; text-underline-offset: 2px; }
+.policy-consents { margin: 2px 0; padding: 14px; display: grid; gap: 10px; border: 1px solid var(--border); border-radius: 8px; }
+.policy-consents legend { padding: 0 5px; color: var(--market-ocean); font-size: 11px; font-weight: 800; }
+.policy-consents label { display: flex; align-items: flex-start; gap: 8px; color: var(--muted-foreground); font-size: 11px; line-height: 1.6; }
+.policy-consents input { width: 15px; height: 15px; margin: 1px 0 0; accent-color: var(--market-teal); flex: 0 0 auto; }
+.policy-consents > p { margin: 0; color: var(--muted-foreground); font-size: 10px; line-height: 1.5; }
 .reset-password-page { min-height: calc(100vh - 74px); padding: 48px 20px; display: grid; place-items: center; }
 .reset-password-card { width: min(100%, 480px); padding: 28px; display: grid; gap: 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); }
 .reset-password-card h1 { margin: 0; color: var(--market-ocean); font-family: "Sora", sans-serif; font-size: 26px; }
@@ -307,6 +330,9 @@
   .creator-band h2 { font-size: 19px; }
   .creator-band > .button, .creator-band > a { margin-left: 58px; }
   .market-footer { margin: 0 18px; padding: 18px 0 24px; flex-direction: column; }
+  .policy-page { padding: 34px 18px 26px; }
+  .policy-document { padding: 18px; }
+  .policy-page-footer { flex-direction: column; }
   .guide-detail-page, .creator-studio { padding: 22px 18px 0; }
   .guide-detail-layout { grid-template-columns: 1fr; gap: 0; }
   .guide-detail-art { min-height: 135px; margin-bottom: 22px; }

@@ -30,6 +30,7 @@ import {
   serializeCreatorProfile,
   slugifyGuideTitle,
 } from "@/lib/marketplace-data";
+import { POLICY_DRAFT_VERSION } from "@/lib/policy-drafts";
 import { supabase } from "@/integrations/supabase/client";
 
 type CreatorGuide = {
@@ -81,6 +82,9 @@ function CreatorStudioPage() {
   const [profileExpertise, setProfileExpertise] = useState<string[]>([]);
   const [profileExperience, setProfileExperience] = useState("");
   const [rightsAcknowledged, setRightsAcknowledged] = useState(false);
+  const [termsDraftReviewed, setTermsDraftReviewed] = useState(false);
+  const [privacyDraftReviewed, setPrivacyDraftReviewed] = useState(false);
+  const [creatorRulesDraftReviewed, setCreatorRulesDraftReviewed] = useState(false);
   const [onboardingComplete, setOnboardingComplete] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(1);
   const [verificationBusy, setVerificationBusy] = useState(false);
@@ -133,6 +137,19 @@ function CreatorStudioPage() {
         setProfileBio(profile.about);
         setProfileExpertise(profile.expertise);
         setProfileExperience(profile.experience);
+        const policyVersion = currentUser.user_metadata["doerly_policy_draft_version"];
+        const termsReviewed =
+          policyVersion === POLICY_DRAFT_VERSION &&
+          Boolean(currentUser.user_metadata["doerly_terms_draft_reviewed_at"]);
+        const privacyReviewed =
+          policyVersion === POLICY_DRAFT_VERSION &&
+          Boolean(currentUser.user_metadata["doerly_privacy_draft_reviewed_at"]);
+        const creatorRulesReviewed =
+          policyVersion === POLICY_DRAFT_VERSION &&
+          Boolean(currentUser.user_metadata["doerly_creator_rules_draft_reviewed_at"]);
+        setTermsDraftReviewed(termsReviewed);
+        setPrivacyDraftReviewed(privacyReviewed);
+        setCreatorRulesDraftReviewed(creatorRulesReviewed);
         const profileBasicsComplete = Boolean(displayName.trim() && profile.about.trim());
         const expertiseDetailsComplete = Boolean(
           profile.expertise.length && profile.experience.trim(),
@@ -145,7 +162,10 @@ function CreatorStudioPage() {
             profile.expertise.length &&
             profile.experience &&
             profile.about &&
-            currentUser.user_metadata["doerly_creator_rights_acknowledged_at"],
+            currentUser.user_metadata["doerly_creator_rights_acknowledged_at"] &&
+            termsReviewed &&
+            privacyReviewed &&
+            creatorRulesReviewed,
           ),
         );
         setGuides(guideResult.data ?? []);
@@ -180,6 +200,14 @@ function CreatorStudioPage() {
     }
     if (!onboardingComplete && onboardingStep === 3 && !rightsAcknowledged) {
       setFeedback("Confirm that you have the right to share your materials.");
+      return;
+    }
+    if (
+      !onboardingComplete &&
+      onboardingStep === 3 &&
+      (!termsDraftReviewed || !privacyDraftReviewed || !creatorRulesDraftReviewed)
+    ) {
+      setFeedback("Review and acknowledge each policy draft to finish creator setup.");
       return;
     }
     const avatarUrl = profileAvatarUrl.trim();
@@ -227,8 +255,15 @@ function CreatorStudioPage() {
       return;
     }
     if (!onboardingComplete) {
+      const acknowledgedAt = new Date().toISOString();
       const { error: acknowledgmentError } = await supabase.auth.updateUser({
-        data: { doerly_creator_rights_acknowledged_at: new Date().toISOString() },
+        data: {
+          doerly_creator_rights_acknowledged_at: acknowledgedAt,
+          doerly_policy_draft_version: POLICY_DRAFT_VERSION,
+          doerly_terms_draft_reviewed_at: acknowledgedAt,
+          doerly_privacy_draft_reviewed_at: acknowledgedAt,
+          doerly_creator_rules_draft_reviewed_at: acknowledgedAt,
+        },
       });
       if (acknowledgmentError) {
         setFeedback(
@@ -438,7 +473,12 @@ function CreatorStudioPage() {
           <LockKeyhole aria-hidden="true" />
           <p>Your drafts and uploaded files are private to your account.</p>
         </div>
-        <MarketplaceAuthDialog open={authOpen} onOpenChange={setAuthOpen} initialMode="signup" />
+        <MarketplaceAuthDialog
+          open={authOpen}
+          onOpenChange={setAuthOpen}
+          initialMode="signup"
+          signupPurpose="creator"
+        />
       </main>
     );
   }
@@ -653,6 +693,51 @@ function CreatorStudioPage() {
                       <dd>{profileBio || "Not provided"}</dd>
                     </div>
                   </dl>
+                  <label className="creator-consent">
+                    <input
+                      type="checkbox"
+                      checked={termsDraftReviewed}
+                      onChange={(event) => setTermsDraftReviewed(event.target.checked)}
+                      required
+                    />
+                    <span>
+                      I reviewed the draft{" "}
+                      <a href="/policies#terms" target="_blank" rel="noreferrer">
+                        Terms of Use
+                      </a>
+                      .
+                    </span>
+                  </label>
+                  <label className="creator-consent">
+                    <input
+                      type="checkbox"
+                      checked={privacyDraftReviewed}
+                      onChange={(event) => setPrivacyDraftReviewed(event.target.checked)}
+                      required
+                    />
+                    <span>
+                      I reviewed the draft{" "}
+                      <a href="/policies#privacy" target="_blank" rel="noreferrer">
+                        Privacy Notice
+                      </a>
+                      .
+                    </span>
+                  </label>
+                  <label className="creator-consent">
+                    <input
+                      type="checkbox"
+                      checked={creatorRulesDraftReviewed}
+                      onChange={(event) => setCreatorRulesDraftReviewed(event.target.checked)}
+                      required
+                    />
+                    <span>
+                      I reviewed the draft{" "}
+                      <a href="/policies#creator-rules" target="_blank" rel="noreferrer">
+                        Creator Content Rules
+                      </a>
+                      .
+                    </span>
+                  </label>
                   <label className="creator-consent">
                     <input
                       type="checkbox"

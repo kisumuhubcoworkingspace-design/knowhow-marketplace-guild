@@ -1,1 +1,2 @@
 - [Creator profile storage](creator-profile-storage.md) — Onboarding details temporarily share public profile text; the rights acknowledgment is not an immutable consent log.
+- [Policy drafts](policy-drafts.md) — Terms, privacy, and creator rules are drafts for review only; do not treat them as final legal terms.

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ArrowRight, Eye, EyeOff, LoaderCircle, LockKeyhole, Mail, UserRound } from "lucide-react";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
+import { POLICY_DRAFT_VERSION } from "@/lib/policy-drafts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,6 +17,7 @@ type MarketplaceAuthDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialMode?: "signin" | "signup";
+  signupPurpose?: "account" | "creator";
   onAuthenticated?: () => void;
 };
 
@@ -46,6 +48,7 @@ export function MarketplaceAuthDialog({
   open,
   onOpenChange,
   initialMode = "signin",
+  signupPurpose = "account",
   onAuthenticated,
 }: MarketplaceAuthDialogProps) {
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">(initialMode);
@@ -56,26 +59,50 @@ export function MarketplaceAuthDialog({
   const [busy, setBusy] = useState(false);
   const [verificationPending, setVerificationPending] = useState(false);
   const [accountRecoveryPrompt, setAccountRecoveryPrompt] = useState(false);
+  const [termsDraftReviewed, setTermsDraftReviewed] = useState(false);
+  const [privacyDraftReviewed, setPrivacyDraftReviewed] = useState(false);
+  const [creatorRulesDraftReviewed, setCreatorRulesDraftReviewed] = useState(false);
   const [feedback, setFeedback] = useState("");
 
   function switchMode(nextMode: "signin" | "signup" | "forgot") {
     setMode(nextMode);
     setVerificationPending(false);
     setAccountRecoveryPrompt(false);
+    setTermsDraftReviewed(false);
+    setPrivacyDraftReviewed(false);
+    setCreatorRulesDraftReviewed(false);
     setFeedback("");
   }
 
   async function handlePasswordSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setBusy(true);
     setFeedback("");
+    if (
+      mode === "signup" &&
+      (!termsDraftReviewed ||
+        !privacyDraftReviewed ||
+        (signupPurpose === "creator" && !creatorRulesDraftReviewed))
+    ) {
+      setFeedback("Review each required policy draft before creating your account.");
+      return;
+    }
+    setBusy(true);
     try {
       if (mode === "signup") {
+        const policyAcknowledgedAt = new Date().toISOString();
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
           options: {
-            data: { full_name: displayName.trim() },
+            data: {
+              full_name: displayName.trim(),
+              doerly_policy_draft_version: POLICY_DRAFT_VERSION,
+              doerly_terms_draft_reviewed_at: policyAcknowledgedAt,
+              doerly_privacy_draft_reviewed_at: policyAcknowledgedAt,
+              ...(signupPurpose === "creator"
+                ? { doerly_creator_rules_draft_reviewed_at: policyAcknowledgedAt }
+                : {}),
+            },
             emailRedirectTo: window.location.href,
           },
         });
@@ -174,7 +201,7 @@ export function MarketplaceAuthDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {mode !== "forgot" && (
+        {mode === "signin" && (
           <div className="auth-provider-list">
             <Button
               variant="outline"
@@ -201,7 +228,7 @@ export function MarketplaceAuthDialog({
           </div>
         )}
 
-        {mode !== "forgot" && (
+        {mode === "signin" && (
           <div className="auth-divider">
             <span>or use email</span>
           </div>
@@ -265,6 +292,59 @@ export function MarketplaceAuthDialog({
                 </Button>
               </span>
             </label>
+          )}
+          {mode === "signup" && (
+            <fieldset className="policy-consents">
+              <legend>Review the policy drafts</legend>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={termsDraftReviewed}
+                  onChange={(event) => setTermsDraftReviewed(event.target.checked)}
+                  required
+                />
+                <span>
+                  I reviewed the draft{" "}
+                  <a href="/policies#terms" target="_blank" rel="noreferrer">
+                    Terms of Use
+                  </a>{" "}
+                  and understand they are not final.
+                </span>
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={privacyDraftReviewed}
+                  onChange={(event) => setPrivacyDraftReviewed(event.target.checked)}
+                  required
+                />
+                <span>
+                  I reviewed the draft{" "}
+                  <a href="/policies#privacy" target="_blank" rel="noreferrer">
+                    Privacy Notice
+                  </a>
+                  .
+                </span>
+              </label>
+              {signupPurpose === "creator" && (
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={creatorRulesDraftReviewed}
+                    onChange={(event) => setCreatorRulesDraftReviewed(event.target.checked)}
+                    required
+                  />
+                  <span>
+                    I reviewed the draft{" "}
+                    <a href="/policies#creator-rules" target="_blank" rel="noreferrer">
+                      Creator Content Rules
+                    </a>
+                    .
+                  </span>
+                </label>
+              )}
+              <p>These acknowledgments record review of drafts only, not final legal acceptance.</p>
+            </fieldset>
           )}
           {feedback && (
             <p className="auth-feedback" role="status">

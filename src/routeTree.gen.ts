@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CreatorRouteImport } from './routes/creator'
 import { Route as ExploreRouteImport } from './routes/explore'
+import { Route as PoliciesRouteImport } from './routes/policies'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as GuideSlugRouteImport } from './routes/guide.$slug'
 
@@ -30,6 +31,11 @@ const ExploreRoute = ExploreRouteImport.update({
   path: '/explore',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PoliciesRoute = PoliciesRouteImport.update({
+  id: '/policies',
+  path: '/policies',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/creator': typeof CreatorRoute
   '/explore': typeof ExploreRoute
+  '/policies': typeof PoliciesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/guide/$slug': typeof GuideSlugRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/creator': typeof CreatorRoute
   '/explore': typeof ExploreRoute
+  '/policies': typeof PoliciesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/guide/$slug': typeof GuideSlugRoute
 }
@@ -60,19 +68,33 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/creator': typeof CreatorRoute
   '/explore': typeof ExploreRoute
+  '/policies': typeof PoliciesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/guide/$slug': typeof GuideSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/creator' | '/explore' | '/reset-password' | '/guide/$slug'
+  fullPaths:
+    | '/'
+    | '/creator'
+    | '/explore'
+    | '/policies'
+    | '/reset-password'
+    | '/guide/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/creator' | '/explore' | '/reset-password' | '/guide/$slug'
+  to:
+    | '/'
+    | '/creator'
+    | '/explore'
+    | '/policies'
+    | '/reset-password'
+    | '/guide/$slug'
   id:
     | '__root__'
     | '/'
     | '/creator'
     | '/explore'
+    | '/policies'
     | '/reset-password'
     | '/guide/$slug'
   fileRoutesById: FileRoutesById
@@ -81,6 +103,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreatorRoute: typeof CreatorRoute
   ExploreRoute: typeof ExploreRoute
+  PoliciesRoute: typeof PoliciesRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   GuideSlugRoute: typeof GuideSlugRoute
 }
@@ -108,6 +131,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExploreRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/policies': {
+      id: '/policies'
+      path: '/policies'
+      fullPath: '/policies'
+      preLoaderRoute: typeof PoliciesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -129,6 +159,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreatorRoute: CreatorRoute,
   ExploreRoute: ExploreRoute,
+  PoliciesRoute: PoliciesRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   GuideSlugRoute: GuideSlugRoute,
 }
