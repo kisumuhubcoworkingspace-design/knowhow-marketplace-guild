@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { BookOpen, LogOut, Menu, X } from "lucide-react";
+import { LogOut, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MarketplaceAuthDialog } from "@/components/marketplace-auth-dialog";
 import { useMarketplaceAuth } from "@/hooks/use-marketplace-auth";
@@ -23,26 +23,40 @@ export function MarketplaceHeader() {
       <header className="market-header">
         <div className="market-header-inner">
           <Link to="/" className="market-brand" aria-label="Doerly home">
-            <span className="market-brand-mark"><BookOpen aria-hidden="true" /></span>
+            <img className="market-brand-mark" src="/doerly-mark.png" alt="" aria-hidden="true" />
             <span>Doerly</span>
           </Link>
           <nav className={`market-nav ${menuOpen ? "is-open" : ""}`} aria-label="Main navigation">
-            <Link to="/explore" search={{}} onClick={() => setMenuOpen(false)}>Explore</Link>
-            <Link to="/creator" onClick={() => setMenuOpen(false)}>Creator studio</Link>
+            <Link to="/explore" search={{}} onClick={() => setMenuOpen(false)}>
+              Explore
+            </Link>
+            <Link to="/creator" onClick={() => setMenuOpen(false)}>
+              Creator studio
+            </Link>
             {user ? (
               <Button variant="ghost" size="sm" onClick={() => void signOut()}>
                 <LogOut aria-hidden="true" /> Sign out
               </Button>
             ) : (
-              <Button variant="ghost" size="sm" onClick={() => { setAuthOpen(true); setMenuOpen(false); }}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setAuthOpen(true);
+                  setMenuOpen(false);
+                }}
+              >
                 Sign in
               </Button>
             )}
-            <Button className="market-nav-cta" size="sm" onClick={() => {
-              setMenuOpen(false);
-              if (user) void navigate({ to: "/creator" });
-              else setAuthOpen(true);
-            }}>
+            <Button
+              className="market-nav-cta"
+              size="sm"
+              onClick={() => {
+                setMenuOpen(false);
+                void navigate({ to: "/creator" });
+              }}
+            >
               Share your know-how
             </Button>
           </nav>

@@ -7,6 +7,7 @@ import {
   formatGuidePrice,
   marketplaceCategories,
   marketplaceFormats,
+  rankGuideListings,
   type GuideListing,
 } from "@/lib/marketplace-data";
 
@@ -29,29 +30,13 @@ export function GuideCatalog({
   const [price, setPrice] = useState("Any price");
 
   const filteredListings = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase();
-    return listings.filter((guide) => {
+    return rankGuideListings(listings, query).filter((guide) => {
       const matchesCategory = category === "All knowledge" || guide.category === category;
       const matchesFormat = format === "All formats" || guide.format === format;
       const matchesPrice =
         price === "Any price" ||
         (price === "Free" ? guide.price_cents === 0 : guide.price_cents > 0);
-      const searchableText = [
-        guide.title,
-        guide.summary,
-        guide.description,
-        guide.category,
-        guide.format,
-        guide.creator_name,
-      ]
-        .join(" ")
-        .toLocaleLowerCase();
-      return (
-        matchesCategory &&
-        matchesFormat &&
-        matchesPrice &&
-        (!normalizedQuery || searchableText.includes(normalizedQuery))
-      );
+      return matchesCategory && matchesFormat && matchesPrice;
     });
   }, [category, format, listings, price, query]);
 

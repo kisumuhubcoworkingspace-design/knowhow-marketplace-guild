@@ -22,10 +22,22 @@ type MarketplaceAuthDialogProps = {
 function GoogleMark() {
   return (
     <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[18px] w-[18px] shrink-0">
-      <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z" />
-      <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09C3.26 21.3 7.31 24 12 24z" />
-      <path fill="#FBBC05" d="M5.27 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.98-3.09z" />
-      <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z" />
+      <path
+        fill="#4285F4"
+        d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09C3.26 21.3 7.31 24 12 24z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.27 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.98-3.09z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z"
+      />
     </svg>
   );
 }
@@ -43,11 +55,13 @@ export function MarketplaceAuthDialog({
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [verificationPending, setVerificationPending] = useState(false);
+  const [accountRecoveryPrompt, setAccountRecoveryPrompt] = useState(false);
   const [feedback, setFeedback] = useState("");
 
   function switchMode(nextMode: "signin" | "signup" | "forgot") {
     setMode(nextMode);
     setVerificationPending(false);
+    setAccountRecoveryPrompt(false);
     setFeedback("");
   }
 
@@ -85,7 +99,18 @@ export function MarketplaceAuthDialog({
       onOpenChange(false);
       onAuthenticated?.();
     } catch (error) {
-      setFeedback(error instanceof Error ? error.message : "We couldn't complete that request. Try again.");
+      const message = error instanceof Error ? error.message : "";
+      if (
+        mode === "signup" &&
+        /already registered|user already exists|email.*exists|email.*registered/i.test(message)
+      ) {
+        setAccountRecoveryPrompt(true);
+        setFeedback(
+          "We couldn’t create an account with that email. Try signing in or resetting your password.",
+        );
+      } else {
+        setFeedback(message || "We couldn't complete that request. Try again.");
+      }
     } finally {
       setBusy(false);
     }
@@ -100,9 +125,11 @@ export function MarketplaceAuthDialog({
       email: email.trim(),
       options: { emailRedirectTo: window.location.href },
     });
-    setFeedback(error
-      ? error.message
-      : "A verification link has been sent. Check your inbox and spam folder.");
+    setFeedback(
+      error
+        ? error.message
+        : "A verification link has been sent. Check your inbox and spam folder.",
+    );
     setBusy(false);
   }
 
@@ -128,9 +155,15 @@ export function MarketplaceAuthDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="auth-dialog">
         <DialogHeader className="auth-header">
-          <span className="auth-mark"><LockKeyhole aria-hidden="true" /></span>
+          <span className="auth-mark">
+            <LockKeyhole aria-hidden="true" />
+          </span>
           <DialogTitle className="font-heading text-2xl">
-            {mode === "signup" ? "Join Doerly" : mode === "forgot" ? "Reset your password" : "Welcome back"}
+            {mode === "signup"
+              ? "Join Doerly"
+              : mode === "forgot"
+                ? "Reset your password"
+                : "Welcome back"}
           </DialogTitle>
           <DialogDescription>
             {mode === "signup"
@@ -141,30 +174,38 @@ export function MarketplaceAuthDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {mode !== "forgot" && <div className="auth-provider-list">
-          <Button
-            variant="outline"
-            className="auth-provider-google"
-            type="button"
-            disabled={busy}
-            onClick={() => void handleSocialSignIn("google")}
-          >
-            <GoogleMark />
-            Continue with Google
-          </Button>
-          <Button
-            variant="outline"
-            className="auth-provider-lovable"
-            type="button"
-            disabled={busy}
-            onClick={() => void handleSocialSignIn("lovable")}
-          >
-            <span aria-hidden="true" className="lovable-mark">L</span>
-            Continue with Lovable
-          </Button>
-        </div>}
+        {mode !== "forgot" && (
+          <div className="auth-provider-list">
+            <Button
+              variant="outline"
+              className="auth-provider-google"
+              type="button"
+              disabled={busy}
+              onClick={() => void handleSocialSignIn("google")}
+            >
+              <GoogleMark />
+              Continue with Google
+            </Button>
+            <Button
+              variant="outline"
+              className="auth-provider-lovable"
+              type="button"
+              disabled={busy}
+              onClick={() => void handleSocialSignIn("lovable")}
+            >
+              <span aria-hidden="true" className="lovable-mark">
+                L
+              </span>
+              Continue with Lovable
+            </Button>
+          </div>
+        )}
 
-        {mode !== "forgot" && <div className="auth-divider"><span>or use email</span></div>}
+        {mode !== "forgot" && (
+          <div className="auth-divider">
+            <span>or use email</span>
+          </div>
+        )}
 
         <form className="auth-form" onSubmit={(event) => void handlePasswordSubmit(event)}>
           {mode === "signup" && (
@@ -197,57 +238,94 @@ export function MarketplaceAuthDialog({
               />
             </span>
           </label>
-          {mode !== "forgot" && <label className="field-label">
-            Password
-            <span className="field-control field-control-password">
-              <LockKeyhole aria-hidden="true" />
-              <Input
-                type={showPassword ? "text" : "password"}
-                autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder={mode === "signup" ? "At least 8 characters" : "Your password"}
-                required
-                minLength={8}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="password-visibility"
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                title={showPassword ? "Hide password" : "Show password"}
-                onClick={() => setShowPassword((visible) => !visible)}
-              >
-                {showPassword ? <EyeOff /> : <Eye />}
+          {mode !== "forgot" && (
+            <label className="field-label">
+              Password
+              <span className="field-control field-control-password">
+                <LockKeyhole aria-hidden="true" />
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder={mode === "signup" ? "At least 8 characters" : "Your password"}
+                  required
+                  minLength={8}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="password-visibility"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  title={showPassword ? "Hide password" : "Show password"}
+                  onClick={() => setShowPassword((visible) => !visible)}
+                >
+                  {showPassword ? <EyeOff /> : <Eye />}
+                </Button>
+              </span>
+            </label>
+          )}
+          {feedback && (
+            <p className="auth-feedback" role="status">
+              {feedback}
+            </p>
+          )}
+          {accountRecoveryPrompt && (
+            <div className="auth-recovery-actions">
+              <Button type="button" variant="outline" onClick={() => switchMode("signin")}>
+                Sign in instead
               </Button>
-            </span>
-          </label>}
-          {feedback && <p className="auth-feedback" role="status">{feedback}</p>}
+              <Button type="button" variant="link" onClick={() => switchMode("forgot")}>
+                Reset password
+              </Button>
+            </div>
+          )}
           <Button type="submit" className="w-full" disabled={busy}>
             {busy ? <LoaderCircle className="animate-spin" /> : <ArrowRight />}
-            {mode === "signup" ? "Create your account" : mode === "forgot" ? "Send reset link" : "Sign in"}
+            {mode === "signup"
+              ? "Create your account"
+              : mode === "forgot"
+                ? "Send reset link"
+                : "Sign in"}
           </Button>
         </form>
 
         {verificationPending && (
-          <Button type="button" variant="outline" className="w-full" disabled={busy} onClick={() => void resendSignupVerification()}>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            disabled={busy}
+            onClick={() => void resendSignupVerification()}
+          >
             {busy ? <LoaderCircle className="animate-spin" /> : <Mail />}
             Resend verification email
           </Button>
         )}
         {mode === "signin" && (
-          <Button type="button" variant="link" className="auth-forgot-link" onClick={() => switchMode("forgot")}>
+          <Button
+            type="button"
+            variant="link"
+            className="auth-forgot-link"
+            onClick={() => switchMode("forgot")}
+          >
             Forgot password?
           </Button>
         )}
         <p className="auth-switch">
-          {mode === "signup" ? "Already have an account?" : mode === "forgot" ? "Remembered it?" : "New to Doerly?"}{" "}
+          {mode === "signup"
+            ? "Already have an account?"
+            : mode === "forgot"
+              ? "Remembered it?"
+              : "New to Doerly?"}{" "}
           <Button
             type="button"
             variant="link"
             className="h-auto p-0 font-semibold"
-            onClick={() => switchMode(mode === "signup" ? "signin" : mode === "forgot" ? "signin" : "signup")}
+            onClick={() =>
+              switchMode(mode === "signup" ? "signin" : mode === "forgot" ? "signin" : "signup")
+            }
           >
             {mode === "signup" ? "Sign in" : mode === "forgot" ? "Sign in" : "Create an account"}
           </Button>

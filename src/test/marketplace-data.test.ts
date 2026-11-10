@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { parseCreatorProfile, serializeCreatorProfile } from "@/lib/marketplace-data";
+import {
+  parseCreatorProfile,
+  rankGuideListings,
+  sampleGuides,
+  serializeCreatorProfile,
+} from "@/lib/marketplace-data";
 
 describe("creator profile persistence", () => {
   it("round-trips expertise, experience, and public bio through the profile bio field", () => {
@@ -18,5 +23,22 @@ describe("creator profile persistence", () => {
       experience: "",
       about: "A longtime poultry keeper.",
     });
+  });
+});
+
+describe("problem-led resource search", () => {
+  it("finds matching resources from a natural-language question", () => {
+    expect(rankGuideListings(sampleGuides, "How can I raise healthy chicks?")[0]?.slug).toBe(
+      "healthy-chicks-first-eight-weeks",
+    );
+  });
+
+  it("includes a creator's public expertise and experience in search", () => {
+    const guide = {
+      ...sampleGuides[0]!,
+      creator_bio: "Expertise: Farming & food\nPractical experience: Eight years raising poultry.",
+    };
+
+    expect(rankGuideListings([guide], "poultry experience")).toEqual([guide]);
   });
 });

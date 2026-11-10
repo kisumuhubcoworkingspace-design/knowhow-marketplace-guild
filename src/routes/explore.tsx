@@ -18,14 +18,19 @@ export const Route = createFileRoute("/explore")({
 
     const creatorIds = [...new Set((guides ?? []).map((guide) => guide.creator_id))];
     const { data: profiles, error: profilesError } = creatorIds.length
-      ? await supabase.from("profiles").select("id, display_name").in("id", creatorIds)
+      ? await supabase
+          .from("profiles")
+          .select("id, display_name, bio, avatar_url")
+          .in("id", creatorIds)
       : { data: [], error: null };
     if (profilesError) throw profilesError;
 
-    const names = new Map((profiles ?? []).map((profile) => [profile.id, profile.display_name]));
+    const profileById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
     const liveListings: GuideListing[] = (guides ?? []).map((guide) => ({
       ...guide,
-      creator_name: names.get(guide.creator_id) ?? "Independent creator",
+      creator_name: profileById.get(guide.creator_id)?.display_name ?? "Independent creator",
+      creator_bio: profileById.get(guide.creator_id)?.bio ?? "",
+      creator_avatar_url: profileById.get(guide.creator_id)?.avatar_url ?? null,
     }));
     const liveSlugs = new Set(liveListings.map((guide) => guide.slug));
     return [...liveListings, ...sampleGuides.filter((guide) => !liveSlugs.has(guide.slug))];
